@@ -63,24 +63,45 @@
         const resultBox = document.getElementById("resultBox");
         const resultOutput = document.getElementById("resultOutput");
 
-        // TEMPORARY mock API response before connecting backend
-        const mockData = {
-            studentName: "John Doe",
-            class: "JSS2",
-            term: "First Term",
-            session: "2024/2025",
-            subjects: [
-                { name: "Mathematics", score: 78 },
-                { name: "English", score: 65 }
-            ]
-        };
+        const API_URL = "https://bps-qgmn.onrender.com"; // Your Render backend
 
-        form.addEventListener("submit", (e) => {
+        form.addEventListener("submit", async (e) => {
             e.preventDefault();
 
-            // show mock result for now
-            resultBox.classList.remove("hidden");
-            resultOutput.textContent = JSON.stringify(mockData, null, 2);
+            const studentId = document.getElementById("studentId").value;
+            const term = document.getElementById("term").value;
+            const session = document.getElementById("session").value;
+
+            try {
+                const res = await fetch(`${API_URL}/api/results/check`, {
+                    method: "POST", // make sure your backend has this route
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ studentId, term, session })
+                });
+
+                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
+                const data = await res.json();
+
+                if (data.length === 0) {
+                    resultBox.classList.remove("hidden");
+                    resultOutput.textContent = "No results found for this student.";
+                    return;
+                }
+
+                // Format the result nicely
+                let output = `Student Name: ${data[0].studentName}\nClass: ${data[0].studentClass}\nTerm: ${term}\nSession: ${session}\n\nSubjects:\n`;
+                data.forEach(sub => {
+                    output += ` - ${sub.subject}: ${sub.score}\n`;
+                });
+
+                resultBox.classList.remove("hidden");
+                resultOutput.textContent = output;
+
+            } catch (err) {
+                alert("Failed to fetch result. Check console.");
+                console.error(err);
+            }
         });
     </script>
 
