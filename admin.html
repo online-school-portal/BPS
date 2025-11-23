@@ -189,26 +189,233 @@ const hamburger=document.getElementById('hamburger');
 const navLinks=document.getElementById('navLinks');
 hamburger.addEventListener('click',()=>{hamburger.classList.toggle('active');navLinks.classList.toggle('active');});
 
-function showSection(id){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');navLinks.classList.remove('active');hamburger.classList.remove('active');}
-
-const API_URL="https://bps-qgmn.onrender.com";
-let allStudents=[], allTeachers=[];
-
-async function fetchStudents(){try{const res=await fetch(`${API_URL}/api/students`);const data=await res.json();allStudents=data; renderStudents(data);}catch(err){console.error(err);}}
-function renderStudents(list){let tbody=document.getElementById('studentsBody'); tbody.innerHTML='';list.forEach(std=>{tbody.innerHTML+=`<tr><td style='padding:10px;border:1px solid #ddd;'>${std.studentId}</td><td style='padding:10px;border:1px solid #ddd;'>${std.studentName}</td><td style='padding:10px;border:1px solid #ddd;'>${std.studentClass||'-'}</td></tr>`;});}
-function filterByClass(){const selected=document.getElementById('classFilter').value;if(selected==='all') return renderStudents(allStudents);renderStudents(allStudents.filter(std=>(std.studentClass||'').toLowerCase()===selected.toLowerCase()));}
-
-async function transferStudents(e){e.preventDefault();const currentClass=document.getElementById('currentClass').value;const newClass=document.getElementById('newClass').value;if(!currentClass||!newClass)return alert('Select both classes.');try{const res=await fetch(`${API_URL}/api/students/transfer-class`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({currentClass,newClass})});const result=await res.json();if(result.success){alert('All students transferred successfully!');fetchStudents();document.getElementById('transferForm').reset();}else alert('Error: '+(result.error||'Unknown'));}catch(err){console.error(err);alert('Failed to connect to server.');}
+function showSection(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  navLinks.classList.remove('active');
+  hamburger.classList.remove('active');
 }
-document.getElementById('transferForm').addEventListener('submit',transferStudents);
 
-// Teacher form
- document.getElementById('teacherForm').addEventListener('submit',async e=>{e.preventDefault();const data={teacherName:e.target.teacherName.value,teacherId:e.target.teacherId.value,classes:e.target.classes.value};try{const res=await fetch(`${API_URL}/api/teachers`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const result=await res.json();if(result.success){alert('Teacher added successfully!'); e.target.reset(); fetchTeachers();}else alert('Error: '+(result.error||'Unknown'));}catch(err){console.error(err); alert('Failed to connect to server.');}});
+// ============================
+// CONNECT FRONTEND TO BACKEND
+// ============================
+const API_URL = "https://bps-qgmn.onrender.com"; 
 
-async function fetchTeachers(){try{const res=await fetch(`${API_URL}/api/teachers`);const data=await res.json(); allTeachers=data; renderTeachers(data);}catch(err){console.error(err);}}
-function renderTeachers(list){let tbody=document.getElementById('teachersBody'); tbody.innerHTML='';list.forEach(t=>{tbody.innerHTML+=`<tr><td style='padding:10px;border:1px solid #ddd;'>${t.teacherId}</td><td style='padding:10px;border:1px solid #ddd;'>${t.teacherName}</td><td style='padding:10px;border:1px solid #ddd;'>${t.classes}</td></tr>`;});}
+let allStudents = [];
+let allTeachers = [];
 
-fetchStudents(); fetchTeachers();
+// ============================
+// FETCH ADMIN STUDENTS
+// ============================
+async function fetchStudents(){
+  try {
+    const res = await fetch(`${API_URL}/api/admin/students`);
+    const data = await res.json();
+    allStudents = data;
+    renderStudents(data);
+  } catch(err){
+    console.error(err);
+  }
+}
+
+function renderStudents(list){
+  let tbody = document.getElementById('studentsBody');
+  tbody.innerHTML = '';
+  list.forEach(std=>{
+    tbody.innerHTML += `
+      <tr>
+        <td style='padding:10px;border:1px solid #ddd;'>${std.studentId}</td>
+        <td style='padding:10px;border:1px solid #ddd;'>${std.fullName}</td>
+        <td style='padding:10px;border:1px solid #ddd;'>${std.studentClass || '-'}</td>
+      </tr>
+    `;
+  });
+}
+
+function filterByClass(){
+  const selected = document.getElementById('classFilter').value;
+  if(selected === 'all') return renderStudents(allStudents);
+
+  renderStudents(allStudents.filter(std => 
+    (std.studentClass || '').toLowerCase() === selected.toLowerCase()
+  ));
+}
+
+// ============================
+// REGISTER STUDENT (ADMIN)
+// ============================
+document.getElementById('registrationForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const form = e.target;
+
+  const data = {
+    fullName: form.fullName.value,
+    studentId: form.studentId.value,
+    dateOfBirth: form.dateOfBirth.value,
+    nationality: form.nationality.value,
+    parentName: form.parentName.value,
+    parentPhone: form.parentPhone.value,
+    guardianName: form.guardianName.value,
+    guardianPhone: form.guardianPhone.value,
+    lga: form.lga.value,
+    studentClass: "Not Assigned" // initial default
+  };
+
+  try {
+    const res = await fetch(`${API_URL}/api/admin/students`, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify(data)
+    });
+
+    const result = await res.json();
+
+    if(result.success){
+      alert("Student Registered Successfully!");
+      form.reset();
+      fetchStudents();
+    } else {
+      alert("Error: " + (result.message || result.error));
+    }
+  } catch(err){
+    console.error(err);
+    alert("Failed to connect to server.");
+  }
+});
+
+// ============================
+// ADD RESULT
+// ============================
+document.getElementById("resultForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const form = e.target;
+
+  const data = {
+    rollNo: form.studentId.value,
+    subject: form.subject.value,
+    score: form.score.value,
+    term: form.term.value,
+    session: form.session.value
+  };
+
+  try {
+    const res = await fetch(`${API_URL}/api/results`, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify(data)
+    });
+
+    const result = await res.json();
+
+    if(result.success || result.insertedId){
+      alert("Result Saved Successfully!");
+      form.reset();
+    } else {
+      alert("Error: " + (result.message || result.error));
+    }
+  } catch(err){
+    console.error(err);
+    alert("Failed to connect to server.");
+  }
+});
+
+// ============================
+// TRANSFER STUDENTS
+// ============================
+document.getElementById('transferForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+
+  const currentClass = document.getElementById('currentClass').value;
+  const newClass = document.getElementById('newClass').value;
+
+  if(!currentClass || !newClass){
+    return alert("Please select both classes.");
+  }
+
+  try {
+    const res = await fetch(`${API_URL}/api/admin/students/transfer-class`, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ currentClass, newClass })
+    });
+
+    const result = await res.json();
+
+    if(result.success){
+      alert("Students transferred successfully!");
+      fetchStudents();
+    } else {
+      alert("Error: " + (result.error || result.message));
+    }
+  } catch(err){
+    alert("Failed to connect to server.");
+  }
+});
+
+// ============================
+// TEACHER: ADD
+// ============================
+document.getElementById("teacherForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const form = e.target;
+
+  const data = {
+    fullName: form.teacherName.value,
+    teacherId: form.teacherId.value,
+    classes: form.classes.value
+  };
+
+  try {
+    const res = await fetch(`${API_URL}/api/teachers`, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify(data)
+    });
+
+    const result = await res.json();
+    if(result.success){
+      alert("Teacher added successfully!");
+      form.reset();
+      fetchTeachers();
+    } else {
+      alert("Error: " + (result.message || result.error));
+    }
+  } catch(err){
+    alert("Failed to connect to server.");
+  }
+});
+
+// ============================
+// FETCH TEACHERS
+// ============================
+async function fetchTeachers(){
+  try {
+    const res = await fetch(`${API_URL}/api/teachers`);
+    const data = await res.json();
+    allTeachers = data;
+    renderTeachers(data);
+  } catch(err){
+    console.error(err);
+  }
+}
+
+function renderTeachers(list){
+  let tbody = document.getElementById('teachersBody');
+  tbody.innerHTML = '';
+  list.forEach(t=>{
+    tbody.innerHTML += `
+      <tr>
+        <td style='padding:10px;border:1px solid #ddd;'>${t.teacherId}</td>
+        <td style='padding:10px;border:1px solid #ddd;'>${t.fullName}</td>
+        <td style='padding:10px;border:1px solid #ddd;'>${t.classes}</td>
+      </tr>
+    `;
+  });
+}
+
+// INITIAL LOAD
+fetchStudents();
+fetchTeachers();
 </script>
 </body>
 </html>
