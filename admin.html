@@ -28,108 +28,76 @@
     .row{display:flex;gap:20px;margin-bottom:15px;}
     .row label{flex:1;font-weight:600;color:#333;}
     input,select{width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;margin-top:5px;}
-    button.save-btn{background:navy;color:#fff;padding:12px 25px;border:none;border-radius:8px;cursor:pointer;margin-top:10px;}
+    button.save-btn, button.action-btn{background:navy;color:#fff;padding:8px 15px;border:none;border-radius:8px;cursor:pointer;margin-top:10px;}
+    button.delete-btn{background:red;}
     @media(max-width:700px){.row{flex-direction:column;}.nav-links{width:180px;}}
   </style>
 </head>
-<body><!-- NAVBAR --><nav class="navbar">
-  <div class="logo">Online Portal</div>
-  <div class="hamburger" id="hamburger"><div></div><div></div><div></div></div>
-  <div class="nav-links" id="navLinks">
-    <button onclick="showSection('register')">Register Student</button>
-    <button onclick="showSection('results')">Add Result</button>
-    <button onclick="showSection('manage')">Manage Students</button>
-    <button onclick="showSection('addTeacher')">Add Teacher</button>
-    <button onclick="showSection('manageTeacher')">Manage Teachers</button>
-    <button onclick="showSection('transfer')">Transfer Students</button>
-  </div>
-</nav><!-- REGISTER STUDENT --><section id="register" class="section active">
-  <h1>Register Student</h1>
-  <div class="form-card">
-    <form id="registrationForm">
+<body>
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="logo">Online Portal</div>
+    <div class="hamburger" id="hamburger"><div></div><div></div><div></div></div>
+    <div class="nav-links" id="navLinks">
+      <button onclick="showSection('register')">Register Student</button>
+      <button onclick="showSection('results')">Add Result</button>
+      <button onclick="showSection('manage')">Manage Students</button>
+      <button onclick="showSection('addTeacher')">Add Teacher</button>
+      <button onclick="showSection('manageTeacher')">Manage Teachers</button>
+      <button onclick="showSection('transfer')">Transfer Students</button>
+    </div>
+  </nav>
+
+  <!-- REGISTER STUDENT -->
+  <section id="register" class="section active">
+    <h1>Register Student</h1>
+    <div class="form-card">
+      <form id="registrationForm">
+        <div class="row">
+          <label>Full Name <input type="text" name="fullName" required></label>
+          <label>Student ID <input type="text" name="studentId" required></label>
+        </div>
+        <div class="row">
+          <label>Date of Birth <input type="date" name="dateOfBirth" required></label>
+          <label>Nationality <input type="text" name="nationality"></label>
+        </div>
+        <div class="row">
+          <label>Parent's Name <input type="text" name="parentName"></label>
+          <label>Parent Phone <input type="tel" name="parentPhone"></label>
+        </div>
+        <div class="row">
+          <label>Guardian Name <input type="text" name="guardianName"></label>
+          <label>Guardian Phone <input type="tel" name="guardianPhone"></label>
+        </div>
+        <div class="row">
+          <label>LGA <input type="text" name="lga"></label>
+          <label>Class
+            <select name="studentClass" required>
+              <option value="">--Select Class--</option>
+              <option>Pre-KG</option>
+              <option>KG 1</option>
+              <option>KG 2</option>
+              <option>Primary 1</option>
+              <option>Primary 2</option>
+              <option>Primary 3</option>
+              <option>Primary 4</option>
+              <option>Primary 5</option>
+            </select>
+          </label>
+        </div>
+        <button class="save-btn" type="submit">Register Student</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- MANAGE STUDENTS -->
+  <section id="manage" class="section">
+    <h1>Manage Students</h1>
+    <div class="form-card">
       <div class="row">
-        <label>Full Name <input type="text" name="fullName" required></label>
-        <label>Student ID <input type="text" name="studentId" required></label>
-      </div>
-      <div class="row">
-        <label>Date of Birth <input type="date" name="dateOfBirth" required></label>
-        <label>Nationality <input type="text" name="nationality"></label>
-      </div>
-      <div class="row">
-        <label>Parent's Name <input type="text" name="parentName"></label>
-        <label>Parent Phone <input type="tel" name="parentPhone"></label>
-      </div>
-      <div class="row">
-        <label>Guardian Name <input type="text" name="guardianName"></label>
-        <label>Guardian Phone <input type="tel" name="guardianPhone"></label>
-      </div>
-      <div class="row">
-        <label>LGA <input type="text" name="lga"></label>
-      </div>
-      <button class="save-btn" type="submit">Register Student</button>
-      <div id="status"></div>
-    </form>
-  </div>
-<!-- ADD TEACHER -->
-<section id="addTeacher" class="section">
-  <h1>Add Teacher</h1>
-  <div class="form-card">
-    <form id="teacherForm">
-      <div class="row">
-        <label>Full Name <input type="text" name="fullName" required></label>
-        <label>Phone <input type="tel" name="phone" required></label>
-      </div>
-      <div class="row">
-        <label>Email <input type="email" name="email"></label>
-        <label>Qualification <input type="text" name="qualification"></label>
-      </div>
-      <div class="row">
-        <label>Subject Specialization <input type="text" name="subjectSpecialization" required></label>
-        <label>Class Teacher <input type="text" name="classTeacher"></label>
-      </div>
-      <div class="row">
-        <label>Years of Experience <input type="number" name="yearsOfExperience"></label>
-        <label>Joining Date <input type="date" name="joiningDate"></label>
-      </div>
-      <button class="save-btn" type="submit">Add Teacher</button>
-    </form>
-  </div>
- </section>
-</section><!-- MANAGE TEACHERS --><section id="manageTeacher" class="section">
-  <h1>Manage Teachers</h1>
-  <div class="form-card">
-    <table style="width:100%; border-collapse: collapse;">
-      <thead>
-        <tr style="background:navy;color:white;">
-          <th style="padding:10px;border:1px solid #ddd;">Teacher ID</th>
-          <th style="padding:10px;border:1px solid #ddd;">Name</th>
-          <th style="padding:10px;border:1px solid #ddd;">Class(es)</th>
-        </tr>
-      </thead>
-      <tbody id="teachersBody"></tbody>
-    </table>
-  </div>
-</section><!-- TRANSFER STUDENTS --><section id="transfer" class="section">
-  <h1>Transfer Students</h1>
-  <div class="form-card">
-    <form id="transferForm">
-      <div class="row">
-        <label>Current Class
-          <select id="currentClass" required>
-            <option value="">--Select Current Class--</option>
-            <option>Pre-KG</option>
-            <option>KG 1</option>
-            <option>KG 2</option>
-            <option>Primary 1</option>
-            <option>Primary 2</option>
-            <option>Primary 3</option>
-            <option>Primary 4</option>
-            <option>Primary 5</option>
-          </select>
-        </label>
-        <label>New Class
-          <select id="newClass" required>
-            <option value="">--Select New Class--</option>
+        <label>Filter by Class
+          <select id="studentClassFilter" onchange="filterStudentsByClass()">
+            <option value="all">All</option>
             <option>Pre-KG</option>
             <option>KG 1</option>
             <option>KG 2</option>
@@ -141,189 +109,376 @@
           </select>
         </label>
       </div>
-      <button class="save-btn" type="submit">Transfer</button>
-    </form>
-  </div>
-</section>
-<script>
-const hamburger = document.getElementById('hamburger');
-const navLinks = document.getElementById('navLinks');
+      <table style="width:100%; border-collapse: collapse;">
+        <thead>
+          <tr style="background:navy;color:white;">
+            <th style="padding:10px;border:1px solid #ddd;">Student ID</th>
+            <th style="padding:10px;border:1px solid #ddd;">Name</th>
+            <th style="padding:10px;border:1px solid #ddd;">Class</th>
+            <th style="padding:10px;border:1px solid #ddd;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="studentsBody"></tbody>
+      </table>
+    </div>
+  </section>
 
-hamburger.addEventListener('click', () => {
-  hamburger.classList.toggle('active');
-  navLinks.classList.toggle('active');
-});
+  <!-- ADD TEACHER -->
+  <section id="addTeacher" class="section">
+    <h1>Add Teacher</h1>
+    <div class="form-card">
+      <form id="teacherForm">
+        <div class="row">
+          <label>Teacher ID <input type="text" name="teacherId" required></label>
+          <label>Full Name <input type="text" name="fullName" required></label>
+          <label>Phone <input type="tel" name="phone" required></label>
+        </div>
+        <div class="row">
+          <label>Email <input type="email" name="email"></label>
+          <label>Qualification <input type="text" name="qualification"></label>
+        </div>
+        <div class="row">
+          <label>Subject Specialization <input type="text" name="subjectSpecialization" required></label>
+          <label>Class Teacher <input type="text" name="classTeacher"></label>
+        </div>
+        <div class="row">
+          <label>Years of Experience <input type="number" name="yearsOfExperience"></label>
+          <label>Joining Date <input type="date" name="joiningDate"></label>
+        </div>
+        <button class="save-btn" type="submit">Add Teacher</button>
+      </form>
+    </div>
+  </section>
 
-function showSection(id) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  navLinks.classList.remove('active');
-  hamburger.classList.remove('active');
-}
+  <!-- MANAGE TEACHERS -->
+  <section id="manageTeacher" class="section">
+    <h1>Manage Teachers</h1>
+    <div class="form-card">
+      <table style="width:100%; border-collapse: collapse;">
+        <thead>
+          <tr style="background:navy;color:white;">
+            <th style="padding:10px;border:1px solid #ddd;">Teacher ID</th>
+            <th style="padding:10px;border:1px solid #ddd;">Name</th>
+            <th style="padding:10px;border:1px solid #ddd;">Subject</th>
+            <th style="padding:10px;border:1px solid #ddd;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="teachersBody"></tbody>
+      </table>
+    </div>
+  </section>
 
-// ============================
-// CONNECT FRONTEND TO BACKEND
-// ============================
-const API_URL = "https://bps-qgmn.onrender.com";
+  <!-- ADD RESULTS -->
+  <section id="results" class="section">
+    <h1>Add Result</h1>
+    <div class="form-card">
+      <form id="resultForm">
+        <div class="row">
+          <label>Student
+            <select name="studentId" id="resultStudent" required>
+              <option value="">--Select Student--</option>
+            </select>
+          </label>
+          <label>Teacher
+            <select name="teacherId" id="resultTeacher" required>
+              <option value="">--Select Teacher--</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <label>Subject <input type="text" name="subject" required></label>
+          <label>Score <input type="number" name="score" required></label>
+        </div>
+        <div class="row">
+          <label>Grade <input type="text" name="grade" required></label>
+        </div>
+        <button class="save-btn" type="submit">Add Result</button>
+      </form>
+    </div>
+  </section>
 
-let allStudents = [];
-let allTeachers = [];
+  <!-- TRANSFER STUDENTS -->
+  <section id="transfer" class="section">
+    <h1>Transfer Students</h1>
+    <div class="form-card">
+      <form id="transferForm">
+        <div class="row">
+          <label>Student
+            <select id="transferStudent" required>
+              <option value="">--Select Student--</option>
+            </select>
+          </label>
+          <label>New Class
+            <select id="newClass" required>
+              <option value="">--Select New Class--</option>
+              <option>Pre-KG</option>
+              <option>KG 1</option>
+              <option>KG 2</option>
+              <option>Primary 1</option>
+              <option>Primary 2</option>
+              <option>Primary 3</option>
+              <option>Primary 4</option>
+              <option>Primary 5</option>
+            </select>
+          </label>
+        </div>
+        <button class="save-btn" type="submit">Transfer</button>
+      </form>
+    </div>
+  </section>
 
-// ============================
-// FETCH ADMIN STUDENTS
-// ============================
-async function fetchStudents() {
-  try {
-    const res = await fetch(`${API_URL}/api/admin/students`);
-    const data = await res.json();
-    allStudents = data;
-    renderStudents(data);
-  } catch (err) {
-    console.error(err);
-  }
-}
+  <script>
+    const hamburger = document.getElementById('hamburger');
+    const navLinks = document.getElementById('navLinks');
+    hamburger.addEventListener('click', () => {
+      hamburger.classList.toggle('active');
+      navLinks.classList.toggle('active');
+    });
 
-function renderStudents(list) {
-  const tbody = document.getElementById('studentsBody');
-  tbody.innerHTML = '';
-  list.forEach(std => {
-    tbody.innerHTML += `
-      <tr>
-        <td style="padding:10px;border:1px solid #ddd;">${std.studentId}</td>
-        <td style="padding:10px;border:1px solid #ddd;">${std.fullName}</td>
-        <td style="padding:10px;border:1px solid #ddd;">${std.studentClass || '-'}</td>
-      </tr>
-    `;
-  });
-}
-
-function filterByClass() {
-  const selected = document.getElementById('classFilter').value;
-  if (selected === 'all') return renderStudents(allStudents);
-
-  renderStudents(allStudents.filter(std => 
-    (std.studentClass || '').toLowerCase() === selected.toLowerCase()
-  ));
-}
-
-// ============================
-// REGISTER STUDENT (ADMIN)
-// ============================
-const registrationForm = document.getElementById('registrationForm');
-if (registrationForm) {
-  registrationForm.addEventListener('submit', async e => {
-    e.preventDefault();
-    const form = e.target;
-
-    const data = {
-      fullName: form.fullName.value,
-      studentId: form.studentId.value,
-      dateOfBirth: form.dateOfBirth.value,
-      nationality: form.nationality.value,
-      parentName: form.parentName.value,
-      parentPhone: form.parentPhone.value,
-      guardianName: form.guardianName.value,
-      guardianPhone: form.guardianPhone.value,
-      lga: form.lga.value,
-      studentClass: "Not Assigned"
-    };
-
-    try {
-      const res = await fetch(`${API_URL}/api/admin/students`, {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify(data)
-      });
-
-      const result = await res.json();
-      if (result.success) {
-        alert("Student Registered Successfully!");
-        form.reset();
-        fetchStudents();
-      } else {
-        alert("Error: " + (result.message || result.error));
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Failed to connect to server.");
+    function showSection(id){
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      navLinks.classList.remove('active');
+      hamburger.classList.remove('active');
     }
-  });
-}
 
-// ============================
-// ADD TEACHER
-// ============================
-const teacherForm = document.getElementById('teacherForm');
-if (teacherForm) {
-  teacherForm.addEventListener('submit', async e => {
-    e.preventDefault();
+    const API_URL = "https://bps-qgmn.onrender.com";
+    let allStudents = [];
+    let allTeachers = [];
 
-    const data = {
-      fullName: e.target.fullName.value,
-      phone: e.target.phone.value,
-      email: e.target.email.value,
-      qualification: e.target.qualification.value,
-      subjectSpecialization: e.target.subjectSpecialization.value,
-      classTeacher: e.target.classTeacher.value,
-      yearsOfExperience: e.target.yearsOfExperience.value,
-      joiningDate: e.target.joiningDate.value
-    };
-
-    try {
-      const res = await fetch(`${API_URL}/api/teachers`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-
-      const result = await res.json();
-      if (result.success) {
-        alert('Teacher added successfully!');
-        e.target.reset();
-        fetchTeachers();
-      } else {
-        alert('Error: ' + (result.message || 'Unknown error'));
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Failed to connect to server.');
+    async function fetchStudents() {
+      try {
+        const res = await fetch(`${API_URL}/api/admin/students`);
+        allStudents = await res.json();
+        renderStudents(allStudents);
+        populateResultDropdowns();
+        populateTransferDropdown();
+      } catch(err){ console.error(err); }
     }
-  });
-}
 
-// ============================
-// FETCH TEACHERS
-// ============================
-async function fetchTeachers() {
-  try {
-    const res = await fetch(`${API_URL}/api/teachers`);
-    const data = await res.json();
-    allTeachers = data;
-    renderTeachers(data);
-  } catch (err) {
-    console.error(err);
-  }
-}
+    async function fetchTeachers() {
+      try {
+        const res = await fetch(`${API_URL}/api/teachers`);
+        allTeachers = await res.json();
+        renderTeachers(allTeachers);
+        populateResultDropdowns();
+      } catch(err){ console.error(err); }
+    }
 
-function renderTeachers(list) {
-  const tbody = document.getElementById('teachersBody');
-  tbody.innerHTML = '';
-  list.forEach(t => {
-    tbody.innerHTML += `
-      <tr>
-        <td style="padding:10px;border:1px solid #ddd;">${t.teacherId || '-'}</td>
-        <td style="padding:10px;border:1px solid #ddd;">${t.fullName}</td>
-        <td style="padding:10px;border:1px solid #ddd;">${t.classes || '-'}</td>
-      </tr>
-    `;
-  });
-}
+    function renderStudents(list){
+      const tbody = document.getElementById('studentsBody');
+      tbody.innerHTML = '';
+      list.forEach(std => {
+        tbody.innerHTML += `
+          <tr>
+            <td style="padding:10px;border:1px solid #ddd;">${std.studentId}</td>
+            <td style="padding:10px;border:1px solid #ddd;">${std.fullName}</td>
+            <td style="padding:10px;border:1px solid #ddd;">${std.studentClass || '-'}</td>
+            <td style="padding:10px;border:1px solid #ddd;">
+              <button class="action-btn" onclick='editStudent("${JSON.stringify(std)}")'>Edit</button>
+              <button class="action-btn delete-btn" onclick='deleteStudent("${std.studentId}")'>Delete</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
 
-// ============================
-// INITIAL LOAD
-// ============================
-fetchStudents();
-fetchTeachers();
-  </script>
-</body>
-</html>
+    function renderTeachers(list){
+      const tbody = document.getElementById('teachersBody');
+      tbody.innerHTML = '';
+      list.forEach(t => {
+        tbody.innerHTML += `
+          <tr>
+            <td style="padding:10px;border:1px solid #ddd;">${t.teacherId || '-'}</td>
+            <td style="padding:10px;border:1px solid #ddd;">${t.fullName}</td>
+            <td style="padding:10px;border:1px solid #ddd;">${t.subjectSpecialization || '-'}</td>
+            <td style="padding:10px;border:1px solid #ddd;">
+              <button class="action-btn" onclick='editTeacher("${JSON.stringify(t)}")'>Edit</button>
+              <button class="action-btn delete-btn" onclick='deleteTeacher("${t.teacherId}")'>Delete</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function filterStudentsByClass(){
+      const selected = document.getElementById('studentClassFilter').value;
+      if(selected === 'all') return renderStudents(allStudents);
+      renderStudents(allStudents.filter(s => s.studentClass === selected));
+    }
+
+    function populateResultDropdowns() {
+      const studentSelect = document.getElementById('resultStudent');
+      const teacherSelect = document.getElementById('resultTeacher');
+      if(!studentSelect || !teacherSelect) return;
+
+      studentSelect.innerHTML = '<option value="">--Select Student--</option>';
+      teacherSelect.innerHTML = '<option value="">--Select Teacher--</option>';
+
+      allStudents.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.studentId;
+        opt.textContent = `${s.fullName} (${s.studentId})`;
+        studentSelect.appendChild(opt);
+      });
+      allTeachers.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.teacherId;
+        opt.textContent = `${t.fullName} (${t.teacherId})`;
+        teacherSelect.appendChild(opt);
+      });
+    }
+
+    function populateTransferDropdown() {
+      const transferSelect = document.getElementById('transferStudent');
+      if(!transferSelect) return;
+      transferSelect.innerHTML = '<option value="">--Select Student--</option>';
+      allStudents.forEach(s=>{
+        const opt = document.createElement('option');
+        opt.value = s.studentId;
+        opt.textContent = `${s.fullName} (${s.studentClass})`;
+        transferSelect.appendChild(opt);
+      });
+    }
+
+    // STUDENT FORM
+    const registrationForm = document.getElementById('registrationForm');
+    if(registrationForm){
+      registrationForm.addEventListener('submit', async e=>{
+        e.preventDefault();
+        const form = e.target;
+        const data = {
+          fullName: form.fullName.value,
+          studentId: form.studentId.value,
+          dateOfBirth: form.dateOfBirth.value,
+          nationality: form.nationality.value,
+          parentName: form.parentName.value,
+          parentPhone: form.parentPhone.value,
+          guardianName: form.guardianName.value,
+          guardianPhone: form.guardianPhone.value,
+          lga: form.lga.value,
+          studentClass: form.studentClass.value
+        };
+        try{
+          const res = await fetch(`${API_URL}/api/admin/students`, {
+            method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)
+          });
+          const result = await res.json();
+          if(result.success){ alert('Student registered!'); form.reset(); fetchStudents(); }
+          else alert(result.message||'Failed to register student.');
+        } catch(err){ console.error(err); alert('Failed to connect to server.'); }
+      });
+    }
+
+    function editStudent(student){
+      student = JSON.parse(student);
+      showSection('register');
+      const form = document.getElementById('registrationForm');
+      form.fullName.value = student.fullName;
+      form.studentId.value = student.studentId;
+      form.dateOfBirth.value = student.dateOfBirth;
+      form.nationality.value = student.nationality;
+      form.parentName.value = student.parentName;
+      form.parentPhone.value = student.parentPhone;
+      form.guardianName.value = student.guardianName;
+      form.guardianPhone.value = student.guardianPhone;
+      form.lga.value = student.lga;
+      form.studentClass.value = student.studentClass;
+
+      form.onsubmit = async e=>{
+        e.preventDefault();
+        const data = {
+          fullName: form.fullName.value,
+          studentId: form.studentId.value,
+          dateOfBirth: form.dateOfBirth.value,
+          nationality: form.nationality.value,
+          parentName: form.parentName.value,
+          parentPhone: form.parentPhone.value,
+          guardianName: form.guardianName.value,
+          guardianPhone: form.guardianPhone.value,
+          lga: form.lga.value,
+          studentClass: form.studentClass.value
+        };
+        try {
+          const res = await fetch(`${API_URL}/api/admin/students/${student.studentId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+          const result = await res.json();
+          if(result.success){ 
+            alert('Student updated!');
+            form.reset(); 
+            form.onsubmit = registrationForm.onsubmit; // restore default submit
+            fetchStudents(); 
+          } else alert(result.message || 'Failed to update student.');
+        } catch(err){ console.error(err); alert('Failed to connect to server.'); }
+      };
+    }
+
+    async function deleteStudent(studentId){
+      if(!confirm('Are you sure you want to delete this student?')) return;
+      try {
+        const res = await fetch(`${API_URL}/api/admin/students/${studentId}`, { method:'DELETE' });
+        const result = await res.json();
+        if(result.success){ alert('Student deleted'); fetchStudents(); }
+        else alert(result.message || 'Failed to delete student.');
+      } catch(err){ console.error(err); alert('Failed to connect to server.'); }
+    }
+
+    // TEACHER FORM
+    const teacherForm = document.getElementById('teacherForm');
+    if(teacherForm){
+      teacherForm.addEventListener('submit', async e=>{
+        e.preventDefault();
+        const form = e.target;
+        const data = {
+          fullName: form.fullName.value,
+          phone: form.phone.value,
+          email: form.email.value,
+          qualification: form.qualification.value,
+          subjectSpecialization: form.subjectSpecialization.value,
+          classTeacher: form.classTeacher.value,
+          yearsOfExperience: form.yearsOfExperience.value,
+          joiningDate: form.joiningDate.value
+        };
+        try {
+          const res = await fetch(`${API_URL}/api/teachers`, {
+            method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)
+          });
+          const result = await res.json();
+          if(result.success){ alert('Teacher added'); form.reset(); fetchTeachers(); }
+          else alert(result.message || 'Failed to add teacher.');
+        } catch(err){ console.error(err); alert('Failed to connect to server.'); }
+      });
+    }
+
+    function editTeacher(teacher){
+      teacher = JSON.parse(teacher);
+      showSection('addTeacher');
+      const form = document.getElementById('teacherForm');
+      form.fullName.value = teacher.fullName;
+      form.phone.value = teacher.phone;
+      form.email.value = teacher.email;
+      form.qualification.value = teacher.qualification;
+      form.subjectSpecialization.value = teacher.subjectSpecialization;
+      form.classTeacher.value = teacher.classTeacher;
+      form.yearsOfExperience.value = teacher.yearsOfExperience;
+      form.joiningDate.value = teacher.joiningDate;
+
+      form.onsubmit = async e=>{
+        e.preventDefault();
+        const data = {
+          fullName: form.fullName.value,
+          phone: form.phone.value,
+          email: form.email.value,
+          qualification: form.qualification.value,
+          subjectSpecialization: form.subjectSpecialization.value,
+          classTeacher: form.classTeacher.value,
+          yearsOfExperience: form.yearsOfExperience.value,
+          joiningDate: form.joiningDate.value
+        };
+        try{
+          const res = await fetch(`${API_URL}/api/teachers/${teacher.teacherId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/jso
