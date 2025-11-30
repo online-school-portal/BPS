@@ -16,8 +16,7 @@ export const connectDB = async () => {
   }
 };
 
-// FIXED: renamed to match subjectRoute import
-export const getDb = () => {
+export const getDB = () => {
   if (!db) throw new Error("Database not connected");
   return db;
 };
