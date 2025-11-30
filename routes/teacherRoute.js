@@ -18,6 +18,26 @@ router.get("/", async (req, res) => {
 });
 
 // ============================
+// GET SINGLE teacher
+// ============================
+router.get("/:id", async (req, res) => {
+  try {
+    const db = getDB();
+    const teacher = await db
+      .collection("teachers")
+      .findOne({ _id: new ObjectId(req.params.id) });
+
+    if (!teacher) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    res.json(teacher);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ============================
 // POST add a new teacher
 // ============================
 router.post("/", async (req, res) => {
@@ -52,6 +72,23 @@ router.post("/", async (req, res) => {
     });
 
     res.status(201).json({ success: true, newTeacher });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ============================
+// UPDATE teacher
+// ============================
+router.put("/:id", async (req, res) => {
+  try {
+    const db = getDB();
+    const result = await db.collection("teachers").updateOne(
+      { _id: new ObjectId(req.params.id) },
+      { $set: req.body }
+    );
+
+    res.json({ success: true, message: "Teacher updated" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
