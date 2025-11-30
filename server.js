@@ -18,6 +18,7 @@ app.use(
     origin: [
       "https://online-school-portal.github.io",
       "https://devhamazi.github.io/BPS"
+      "https://online-school-portal.github.io/BPS"
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type"],
