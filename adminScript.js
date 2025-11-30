@@ -504,14 +504,15 @@ function setupSubjectsSection() {
   const subjectClassSelect = document.getElementById('subjectClass');
   const registeredSubjectsContainer = document.getElementById('registeredSubjects');
 
-  if (!subjectForm || !subjectClassSelect) return;
+  if (!subjectForm || !subjectClassSelect || !registeredSubjectsContainer) return;
 
+  // Add subjects
   subjectForm.addEventListener('submit', async e => {
     e.preventDefault();
+
     const className = subjectClassSelect.value;
     if (!className) { alert('Please select a class'); return; }
 
-    // read the 20 manual inputs (already in DOM; class = subject-input)
     const inputs = document.querySelectorAll('.subject-input');
     const subjects = [];
     inputs.forEach(input => {
@@ -524,29 +525,32 @@ function setupSubjectsSection() {
     }
 
     try {
-      const res = await fetch(`${API_URL}/api/subjects`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ class: className, subjects })
-      });
-      const result = await res.json();
-      if (result.success) {
-        alert('Subjects saved!');
-        subjectForm.reset();
-        loadRegisteredSubjects();
-      } else {
-        alert(result.message || 'Failed to save subjects');
+      // Send one POST request per subject
+      for (let subjectName of subjects) {
+        await fetch(`${API_URL}/api/subjects/add`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: subjectName, class: className })
+        });
       }
+
+      alert('Subjects saved!');
+      subjectForm.reset();
+      loadRegisteredSubjects();
     } catch (err) {
       console.error(err);
-      alert('Failed to connect to server.');
+      alert('Failed to save subjects.');
     }
   });
 
+  // Delete all subjects for a class
   window.deleteSubjects = async function(className) {
     if (!confirm(`Delete all subjects for ${className}?`)) return;
+
     try {
-      const res = await fetch(`${API_URL}/api/subjects/${encodeURIComponent(className)}`, { method: 'DELETE' });
+      const res = await fetch(`${API_URL}/api/subjects/class/${encodeURIComponent(className)}`, {
+        method: 'DELETE'
+      });
       const result = await res.json();
       if (result.success) {
         alert('Subjects deleted!');
@@ -560,36 +564,50 @@ function setupSubjectsSection() {
     }
   };
 
+  // Load all subjects grouped by class
   async function loadRegisteredSubjects() {
-    if (!registeredSubjectsContainer) return;
     registeredSubjectsContainer.innerHTML = '<p>Loading...</p>';
     try {
-      const res = await fetch(`${API_URL}/api/subjects`);
+      const res = await fetch(`${API_URL}/api/subjects/all`);
       const data = await res.json();
-      const list = Array.isArray(data) ? data : (data.data || []);
       registeredSubjectsContainer.innerHTML = '';
-      list.forEach(item => {
+
+      for (let className in data) {
+        const subjects = data[className];
         const div = document.createElement('div');
         div.className = 'p-4 border rounded mb-4';
         div.innerHTML = `
-          <h3 class="text-lg font-bold">${escapeHtml(item.class || '')}</h3>
+          <h3 class="text-lg font-bold">${escapeHtml(className)}</h3>
           <ul class="list-disc ml-4 mt-2">
-            ${((item.subjects || []).map(s => `<li>${escapeHtml(s)}</li>`)).join('')}
+            ${subjects.map(s => `<li>${escapeHtml(s.name)}</li>`).join('')}
           </ul>
           <button class="delete-btn mt-3 px-3 py-1 text-white rounded"
-          onclick="deleteSubjects('${encodeURIComponent(item.class)}')">
+          onclick="deleteSubjects('${encodeURIComponent(className)}')">
             Delete
           </button>
         `;
         registeredSubjectsContainer.appendChild(div);
-      });
+      }
+
+      if (Object.keys(data).length === 0) {
+        registeredSubjectsContainer.innerHTML = '<p>No subjects registered yet.</p>';
+      }
     } catch (err) {
       console.error(err);
       registeredSubjectsContainer.innerHTML = '<p>Failed to load registered subjects.</p>';
     }
   }
 
-  // Load initially
+  // Simple HTML escape to prevent XSS
+  function escapeHtml(str) {
+    return str.replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;")
+              .replace(/"/g, "&quot;")
+              .replace(/'/g, "&#039;");
+  }
+
+  // Initial load
   loadRegisteredSubjects();
 }
 
