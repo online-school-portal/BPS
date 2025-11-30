@@ -17,7 +17,7 @@ app.use(
   cors({
     origin: [
       "https://online-school-portal.github.io",
-      "https://devhamazi.github.io/BPS"
+      "https://devhamazi.github.io/BPS",
       "https://online-school-portal.github.io/BPS"
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
