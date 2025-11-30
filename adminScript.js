@@ -222,233 +222,147 @@ async function deleteStudent(studentIdEncoded) {
 /* -------------------------
    TEACHER CARDS (MANAGE)
 ------------------------- */
-/* -------------------------
-   CONFIG
-------------------------- */
-const API_URL = (() => {
-  // Auto-detect backend URL
-  if (window.location.hostname === "localhost") {
-    return "http://localhost:5000"; // Local backend
-  }
-  return "https://your-backend.onrender.com"; // Deployed backend
-})();
-
-/* -------------------------
-   GLOBALS
-------------------------- */
-let allTeachers = []; // Cache loaded teachers
-
-/* -------------------------
-   HELPER: ESCAPE HTML
-------------------------- */
-function escapeHtml(str) {
-  return str.replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-}
-
-/* -------------------------
-   FETCH TEACHERS
-------------------------- */
-async function fetchTeachers() {
-  try {
-    const res = await fetch(`${API_URL}/api/teachers`);
-    if (!res.ok) throw new Error(`Server error: ${res.status}`);
-    allTeachers = await res.json();
-  } catch (err) {
-    console.error("fetchTeachers error:", err);
-    allTeachers = [];
-    alert("Failed to fetch teachers. Check backend and CORS settings.");
-  }
-}
-
-/* -------------------------
-   LOAD TEACHERS TO DOM
-------------------------- */
-async function loadTeachers() {
-  const container = document.getElementById("teachersContainer");
-  if (!container) return;
-  container.innerHTML = "<p>Loading...</p>";
-
-  try {
-    if (!allTeachers || allTeachers.length === 0) await fetchTeachers();
-
-    container.innerHTML = "";
-    if (!allTeachers || allTeachers.length === 0) {
-      container.innerHTML = "<p>No teachers found.</p>";
-      return;
-    }
-
-    allTeachers.forEach(teacher => {
-      const card = document.createElement("div");
-      card.className = "p-4 border rounded shadow bg-white mb-3";
-      card.innerHTML = `
-        <h3 class="text-lg font-bold mb-2">${escapeHtml(teacher.fullName || "")}</h3>
-        <p><strong>Phone:</strong> ${escapeHtml(teacher.phone || "-")}</p>
-        <p><strong>Email:</strong> ${escapeHtml(teacher.email || "-")}</p>
-        <p><strong>Qualification:</strong> ${escapeHtml(teacher.qualification || "-")}</p>
-        <p><strong>Subject:</strong> ${escapeHtml(teacher.subjectSpecialization || "-")}</p>
-        <p><strong>Class Teacher:</strong> ${escapeHtml(teacher.classTeacher || "-")}</p>
-        <p><strong>Years Experience:</strong> ${escapeHtml(teacher.yearsOfExperience || "-")}</p>
-        <p><strong>Joining Date:</strong> ${escapeHtml(teacher.joiningDate || "-")}</p>
-        <div class="flex gap-2 mt-3">
-          <button class="action-btn edit-btn" onclick="openEditTeacherModal('${encodeURIComponent(teacher._id)}')">Edit</button>
-          <button class="action-btn delete-btn" onclick="deleteTeacher('${encodeURIComponent(teacher._id)}')">Delete</button>
-        </div>
-      `;
-      container.appendChild(card);
-    });
-  } catch (err) {
-    console.error("loadTeachers error:", err);
-    container.innerHTML = "<p>Failed to load teachers.</p>";
-  }
-}
-
-/* -------------------------
-   ADD TEACHER
-------------------------- */
 function setupTeacherManagement() {
-  const addForm = document.getElementById("addTeacherForm");
-  if (addForm) {
-    addForm.addEventListener("submit", async e => {
-      e.preventDefault();
-      const payload = {
-        fullName: addForm.fullName.value,
-        phone: addForm.phone.value,
-        email: addForm.email.value,
-        qualification: addForm.qualification.value,
-        subjectSpecialization: addForm.subjectSpecialization.value,
-        classTeacher: addForm.classTeacher.value,
-        yearsOfExperience: addForm.yearsOfExperience.value,
-        joiningDate: addForm.joiningDate.value,
-      };
-
-      try {
-        const res = await fetch(`${API_URL}/api/teachers/add`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        const result = await res.json();
-
-        if (res.ok) {
-          alert("Teacher added successfully!");
-          addForm.reset();
-          await loadTeachers();
-        } else {
-          alert(result.message || "Failed to add teacher.");
-        }
-      } catch (err) {
-        console.error("Add teacher error:", err);
-        alert("Failed to connect to server. Check API_URL & backend.");
-      }
+  // edit modal close
+  const closeTeacherModalBtn = document.getElementById('closeTeacherModal');
+  if (closeTeacherModalBtn) {
+    closeTeacherModalBtn.addEventListener('click', () => {
+      document.getElementById('editTeacherModal').classList.add('hidden');
     });
   }
 
-  /* -------------------------
-     EDIT TEACHER
-  ------------------------- */
-  const editForm = document.getElementById("editTeacherForm");
-  if (editForm) {
-    editForm.addEventListener("submit", async e => {
+  // submit edit teacher modal
+  const editTeacherForm = document.getElementById('editTeacherForm');
+  if (editTeacherForm) {
+    editTeacherForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const teacherId = editForm.teacherId.value;
-      if (!teacherId) return alert("Missing teacher ID");
-
+      const teacherId = editTeacherForm.teacherId?.value || editTeacherForm.querySelector('[name="teacherId"]')?.value;
+      if (!teacherId) {
+        alert('Missing teacher id.');
+        return;
+      }
       const payload = {
-        fullName: editForm.fullName.value,
-        phone: editForm.phone.value,
-        email: editForm.email.value,
-        qualification: editForm.qualification.value,
-        subjectSpecialization: editForm.subjectSpecialization.value,
-        classTeacher: editForm.classTeacher.value,
-        yearsOfExperience: editForm.yearsOfExperience.value,
-        joiningDate: editForm.joiningDate.value,
+        fullName: editTeacherForm.fullName.value,
+        phone: editTeacherForm.phone.value,
+        email: editTeacherForm.email.value,
+        qualification: editTeacherForm.qualification.value,
+        subjectSpecialization: editTeacherForm.subjectSpecialization.value,
+        classTeacher: editTeacherForm.classTeacher.value,
+        yearsOfExperience: editTeacherForm.yearsOfExperience.value,
+        joiningDate: editTeacherForm.joiningDate.value
       };
-
       try {
         const res = await fetch(`${API_URL}/api/teachers/${encodeURIComponent(teacherId)}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
         const result = await res.json();
         if (result.success) {
-          alert("Teacher updated!");
-          document.getElementById("editTeacherModal")?.classList.add("hidden");
-          await loadTeachers();
+          alert('Teacher updated!');
+          document.getElementById('editTeacherModal').classList.add('hidden');
+          await fetchTeachers();
         } else {
-          alert(result.message || "Failed to update teacher.");
+          alert(result.message || 'Failed to update teacher.');
         }
       } catch (err) {
-        console.error("Edit teacher error:", err);
-        alert("Failed to connect to server.");
+        console.error(err);
+        alert('Failed to connect to server.');
       }
     });
   }
-
-  /* -------------------------
-     CLOSE EDIT MODAL
-  ------------------------- */
-  document.getElementById("closeTeacherModal")?.addEventListener("click", () => {
-    document.getElementById("editTeacherModal")?.classList.add("hidden");
-  });
 }
 
-/* -------------------------
-   DELETE TEACHER
-------------------------- */
-async function deleteTeacher(teacherId) {
-  if (!confirm("Are you sure you want to delete this teacher?")) return;
+async function loadTeachers() {
+  const container = document.getElementById('teachersContainer');
+  if (!container) return;
+  container.innerHTML = '<p>Loading...</p>';
+
   try {
-    const res = await fetch(`${API_URL}/api/teachers/${encodeURIComponent(teacherId)}`, {
-      method: "DELETE"
-    });
-    const result = await res.json();
-    if (result.success) {
-      alert("Teacher deleted!");
-      await loadTeachers();
-    } else {
-      alert(result.message || "Failed to delete teacher");
+    if (!allTeachers || allTeachers.length === 0) {
+      await fetchTeachers();
     }
+
+    container.innerHTML = '';
+    if (!allTeachers || allTeachers.length === 0) {
+      container.innerHTML = '<p>No teachers found.</p>';
+      return;
+    }
+
+    allTeachers.forEach(teacher => {
+      const card = document.createElement('div');
+      card.className = 'p-4 border rounded shadow bg-white';
+      card.innerHTML = `
+        <h3 class="text-lg font-bold mb-2">${escapeHtml(teacher.fullName || '')} (${escapeHtml(teacher.teacherId || '-')})</h3>
+        <p><strong>Phone:</strong> ${escapeHtml(teacher.phone || '-')}</p>
+        <p><strong>Email:</strong> ${escapeHtml(teacher.email || '-')}</p>
+        <p><strong>Qualification:</strong> ${escapeHtml(teacher.qualification || '-')}</p>
+        <p><strong>Subject:</strong> ${escapeHtml(teacher.subjectSpecialization || '-')}</p>
+        <p><strong>Class Teacher:</strong> ${escapeHtml(teacher.classTeacher || '-')}</p>
+        <p><strong>Years Experience:</strong> ${escapeHtml(teacher.yearsOfExperience || '-')}</p>
+        <p><strong>Joining Date:</strong> ${escapeHtml(teacher.joiningDate || '-')}</p>
+        <div class="flex gap-2 mt-3">
+          <button class="action-btn edit-btn" onclick="openEditTeacherModal('${encodeURIComponent(teacher.teacherId || '')}')">Edit</button>
+          <button class="action-btn delete-btn" onclick="deleteTeacher('${encodeURIComponent(teacher.teacherId || '')}')">Delete</button>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+
   } catch (err) {
-    console.error("Delete teacher error:", err);
-    alert("Failed to connect to server.");
+    console.error('loadTeachers error', err);
+    container.innerHTML = '<p>Failed to load teachers.</p>';
   }
 }
 
-/* -------------------------
-   OPEN EDIT MODAL
-------------------------- */
-function openEditTeacherModal(teacherId) {
-  const teacher = allTeachers.find(t => t._id === decodeURIComponent(teacherId));
-  if (!teacher) return alert("Teacher not found");
+window.openEditTeacherModal = async function(teacherIdEncoded) {
+  const teacherId = decodeURIComponent(teacherIdEncoded);
+  try {
+    const res = await fetch(`${API_URL}/api/teachers/${teacherId}`);
+    const teacher = await res.json();
+    const form = document.getElementById('editTeacherForm');
+    if (!form) return;
+    // ensure the modal form has a teacherId field; if not, create one hidden
+    if (!form.teacherId) {
+      const hid = document.createElement('input');
+      hid.type = 'hidden';
+      hid.name = 'teacherId';
+      form.appendChild(hid);
+    }
+    form.teacherId.value = teacher.teacherId || '';
+    form.fullName.value = teacher.fullName || '';
+    form.phone.value = teacher.phone || '';
+    form.email.value = teacher.email || '';
+    form.qualification.value = teacher.qualification || '';
+    form.subjectSpecialization.value = teacher.subjectSpecialization || '';
+    form.classTeacher.value = teacher.classTeacher || '';
+    form.yearsOfExperience.value = teacher.yearsOfExperience || '';
+    form.joiningDate.value = teacher.joiningDate || '';
+    document.getElementById('editTeacherModal').classList.remove('hidden');
+  } catch (err) {
+    console.error(err);
+    alert('Failed to fetch teacher details.');
+  }
+};
 
-  const editForm = document.getElementById("editTeacherForm");
-  if (!editForm) return;
-
-  editForm.teacherId.value = teacher._id;
-  editForm.fullName.value = teacher.fullName || "";
-  editForm.phone.value = teacher.phone || "";
-  editForm.email.value = teacher.email || "";
-  editForm.qualification.value = teacher.qualification || "";
-  editForm.subjectSpecialization.value = teacher.subjectSpecialization || "";
-  editForm.classTeacher.value = teacher.classTeacher || "";
-  editForm.yearsOfExperience.value = teacher.yearsOfExperience || "";
-  editForm.joiningDate.value = teacher.joiningDate || "";
-
-  document.getElementById("editTeacherModal")?.classList.remove("hidden");
+async function deleteTeacher(teacherIdEncoded) {
+  const teacherId = decodeURIComponent(teacherIdEncoded);
+  if (!confirm('Are you sure you want to delete this teacher?')) return;
+  try {
+    const res = await fetch(`${API_URL}/api/teachers/${teacherId}`, { method: 'DELETE' });
+    const result = await res.json();
+    if (result.success) {
+      alert('Teacher deleted!');
+      await fetchTeachers();
+    } else {
+      alert(result.message || 'Failed to delete teacher.');
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Failed to connect to server.');
+  }
 }
 
-/* -------------------------
-   INITIALIZE
-------------------------- */
-document.addEventListener("DOMContentLoaded", () => {
-  setupTeacherManagement();
-  loadTeachers();
-});
 
 /* -------------------------
    TRANSFER SECTION
