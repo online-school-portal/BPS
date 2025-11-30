@@ -222,58 +222,90 @@ async function deleteStudent(studentIdEncoded) {
 /* -------------------------
    TEACHER CARDS (MANAGE)
 ------------------------- */
+let allTeachers = []; // Cache for loaded teachers
 
 function setupTeacherManagement() {
-  // Close edit modal
-  const closeTeacherModalBtn = document.getElementById("closeTeacherModal");
-  if (closeTeacherModalBtn) {
-    closeTeacherModalBtn.addEventListener("click", () => {
-      document.getElementById("editTeacherModal").classList.add("hidden");
+  // -------------------------
+  // ADD TEACHER
+  // -------------------------
+  const addForm = document.getElementById("addTeacherForm");
+  if (addForm) {
+    addForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const payload = {
+        fullName: addForm.fullName.value,
+        phone: addForm.phone.value,
+        email: addForm.email.value,
+        qualification: addForm.qualification.value,
+        subjectSpecialization: addForm.subjectSpecialization.value,
+        classTeacher: addForm.classTeacher.value,
+        yearsOfExperience: addForm.yearsOfExperience.value,
+        joiningDate: addForm.joiningDate.value,
+      };
+
+      try {
+        const res = await fetch(`${API_URL}/api/teachers/add`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const result = await res.json();
+
+        if (res.ok) {
+          alert("Teacher added successfully!");
+          addForm.reset();
+          await loadTeachers();
+          document.getElementById("teachersSection")?.scrollIntoView({ behavior: "smooth" });
+        } else {
+          alert(result.message || "Failed to add teacher");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Failed to connect to server.");
+      }
     });
   }
 
-  // Submit edit modal
-  const editTeacherForm = document.getElementById("editTeacherForm");
-  if (editTeacherForm) {
-    editTeacherForm.addEventListener("submit", async (e) => {
+  // -------------------------
+  // EDIT TEACHER
+  // -------------------------
+  const editForm = document.getElementById("editTeacherForm");
+  if (editForm) {
+    editForm.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const teacherId =
-        editTeacherForm.teacherId?.value ||
-        editTeacherForm.querySelector('[name="teacherId"]')?.value;
-
+      const teacherId = editForm.teacherId?.value || editForm.querySelector('[name="teacherId"]')?.value;
       if (!teacherId) {
         alert("Missing teacher ID.");
         return;
       }
 
       const payload = {
-        fullName: editTeacherForm.fullName.value,
-        phone: editTeacherForm.phone.value,
-        email: editTeacherForm.email.value,
-        qualification: editTeacherForm.qualification.value,
-        subjectSpecialization: editTeacherForm.subjectSpecialization.value,
-        classTeacher: editTeacherForm.classTeacher.value,
-        yearsOfExperience: editTeacherForm.yearsOfExperience.value,
-        joiningDate: editTeacherForm.joiningDate.value,
+        fullName: editForm.fullName.value,
+        phone: editForm.phone.value,
+        email: editForm.email.value,
+        qualification: editForm.qualification.value,
+        subjectSpecialization: editForm.subjectSpecialization.value,
+        classTeacher: editForm.classTeacher.value,
+        yearsOfExperience: editForm.yearsOfExperience.value,
+        joiningDate: editForm.joiningDate.value,
       };
 
       try {
-        const res = await fetch(
-          `${API_URL}/api/teachers/${encodeURIComponent(teacherId)}`,
-          {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          }
-        );
+        const res = await fetch(`${API_URL}/api/teachers/${encodeURIComponent(teacherId)}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
 
         const result = await res.json();
 
         if (result.success) {
           alert("Teacher updated!");
-          document.getElementById("editTeacherModal").classList.add("hidden");
-          await fetchTeachers();
+          document.getElementById("editTeacherModal")?.classList.add("hidden");
+          await loadTeachers();
         } else {
           alert(result.message || "Failed to update teacher.");
         }
@@ -283,11 +315,75 @@ function setupTeacherManagement() {
       }
     });
   }
+
+  // -------------------------
+  // CLOSE EDIT MODAL
+  // -------------------------
+  document.getElementById("closeTeacherModal")?.addEventListener("click", () => {
+    document.getElementById("editTeacherModal")?.classList.add("hidden");
+  });
 }
 
-/* -------------------------
-   LOAD TEACHERS
-------------------------- */
+// -------------------------
+// DELETE TEACHER
+// -------------------------
+async function deleteTeacher(teacherId) {
+  if (!confirm("Are you sure you want to delete this teacher?")) return;
+
+  try {
+    const res = await fetch(`${API_URL}/api/teachers/${encodeURIComponent(teacherId)}`, {
+      method: "DELETE",
+    });
+
+    const result = await res.json();
+
+    if (result.success) {
+      alert("Teacher deleted!");
+      await loadTeachers();
+    } else {
+      alert(result.message || "Failed to delete teacher");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Failed to connect to server.");
+  }
+}
+
+// -------------------------
+// OPEN EDIT MODAL
+// -------------------------
+function openEditTeacherModal(teacherId) {
+  const teacher = allTeachers.find(t => t._id === decodeURIComponent(teacherId));
+  if (!teacher) return alert("Teacher not found");
+
+  const editForm = document.getElementById("editTeacherForm");
+  if (!editForm) return;
+
+  editForm.teacherId.value = teacher._id;
+  editForm.fullName.value = teacher.fullName || "";
+  editForm.phone.value = teacher.phone || "";
+  editForm.email.value = teacher.email || "";
+  editForm.qualification.value = teacher.qualification || "";
+  editForm.subjectSpecialization.value = teacher.subjectSpecialization || "";
+  editForm.classTeacher.value = teacher.classTeacher || "";
+  editForm.yearsOfExperience.value = teacher.yearsOfExperience || "";
+  editForm.joiningDate.value = teacher.joiningDate || "";
+
+  document.getElementById("editTeacherModal")?.classList.remove("hidden");
+}
+
+// -------------------------
+// LOAD TEACHERS
+// -------------------------
+async function fetchTeachers() {
+  try {
+    const res = await fetch(`${API_URL}/api/teachers`);
+    allTeachers = await res.json();
+  } catch (err) {
+    console.error("fetchTeachers error", err);
+    allTeachers = [];
+  }
+}
 
 async function loadTeachers() {
   const container = document.getElementById("teachersContainer");
@@ -296,7 +392,7 @@ async function loadTeachers() {
 
   try {
     if (!allTeachers || allTeachers.length === 0) {
-      await fetchTeachers(); // loads from backend
+      await fetchTeachers();
     }
 
     container.innerHTML = "";
@@ -306,41 +402,22 @@ async function loadTeachers() {
       return;
     }
 
-    allTeachers.forEach((teacher) => {
+    allTeachers.forEach(teacher => {
       const card = document.createElement("div");
-      card.className = "p-4 border rounded shadow bg-white";
+      card.className = "p-4 border rounded shadow bg-white mb-3";
 
       card.innerHTML = `
-        <h3 class="text-lg font-bold mb-2">${escapeHtml(
-          teacher.fullName || ""
-        )} (${escapeHtml(teacher._id || "-")})</h3>
-        
+        <h3 class="text-lg font-bold mb-2">${escapeHtml(teacher.fullName || "")}</h3>
         <p><strong>Phone:</strong> ${escapeHtml(teacher.phone || "-")}</p>
         <p><strong>Email:</strong> ${escapeHtml(teacher.email || "-")}</p>
-        <p><strong>Qualification:</strong> ${escapeHtml(
-          teacher.qualification || "-"
-        )}</p>
-        <p><strong>Subject:</strong> ${escapeHtml(
-          teacher.subjectSpecialization || "-"
-        )}</p>
-        <p><strong>Class Teacher:</strong> ${escapeHtml(
-          teacher.classTeacher || "-"
-        )}</p>
-        <p><strong>Years Experience:</strong> ${escapeHtml(
-          teacher.yearsOfExperience || "-"
-        )}</p>
-        <p><strong>Joining Date:</strong> ${escapeHtml(
-          teacher.joiningDate || "-"
-        )}</p>
-
+        <p><strong>Qualification:</strong> ${escapeHtml(teacher.qualification || "-")}</p>
+        <p><strong>Subject:</strong> ${escapeHtml(teacher.subjectSpecialization || "-")}</p>
+        <p><strong>Class Teacher:</strong> ${escapeHtml(teacher.classTeacher || "-")}</p>
+        <p><strong>Years Experience:</strong> ${escapeHtml(teacher.yearsOfExperience || "-")}</p>
+        <p><strong>Joining Date:</strong> ${escapeHtml(teacher.joiningDate || "-")}</p>
         <div class="flex gap-2 mt-3">
-          <button class="action-btn edit-btn" onclick="openEditTeacherModal('${encodeURIComponent(
-            teacher._id
-          )}')">Edit</button>
-
-          <button class="action-btn delete-btn" onclick="deleteTeacher('${encodeURIComponent(
-            teacher._id
-          )}')">Delete</button>
+          <button class="action-btn edit-btn" onclick="openEditTeacherModal('${encodeURIComponent(teacher._id)}')">Edit</button>
+          <button class="action-btn delete-btn" onclick="deleteTeacher('${encodeURIComponent(teacher._id)}')">Delete</button>
         </div>
       `;
 
@@ -352,77 +429,24 @@ async function loadTeachers() {
   }
 }
 
-/* -------------------------
-   OPEN EDIT TEACHER MODAL
-------------------------- */
-
-window.openEditTeacherModal = async function (teacherIdEncoded) {
-  const teacherId = decodeURIComponent(teacherIdEncoded);
-
-  try {
-    const res = await fetch(`${API_URL}/api/teachers/${teacherId}`);
-    const teacher = await res.json();
-
-    const form = document.getElementById("editTeacherForm");
-    if (!form) return;
-
-    // hidden teacherId field
-    if (!form.teacherId) {
-      const hid = document.createElement("input");
-      hid.type = "hidden";
-      hid.name = "teacherId";
-      form.appendChild(hid);
-    }
-
-    form.teacherId.value = teacher._id || "";
-
-    form.fullName.value = teacher.fullName || "";
-    form.phone.value = teacher.phone || "";
-    form.email.value = teacher.email || "";
-    form.qualification.value = teacher.qualification || "";
-    form.subjectSpecialization.value = teacher.subjectSpecialization || "";
-    form.classTeacher.value = teacher.classTeacher || "";
-    form.yearsOfExperience.value = teacher.yearsOfExperience || "";
-    form.joiningDate.value = teacher.joiningDate || "";
-
-    document.getElementById("editTeacherModal").classList.remove("hidden");
-  } catch (err) {
-    console.error(err);
-    alert("Failed to fetch teacher details.");
-  }
-};
-
-/* -------------------------
-   DELETE TEACHER
-------------------------- */
-
-async function deleteTeacher(teacherIdEncoded) {
-  const teacherId = decodeURIComponent(teacherIdEncoded);
-
-  if (!confirm("Are you sure you want to delete this teacher?")) return;
-
-  try {
-    const res = await fetch(
-      `${API_URL}/api/teachers/${encodeURIComponent(teacherId)}`,
-      {
-        method: "DELETE",
-      }
-    );
-
-    const result = await res.json();
-
-    if (result.success) {
-      alert("Teacher deleted!");
-      await fetchTeachers();
-    } else {
-      alert(result.message || "Failed to delete teacher.");
-    }
-  } catch (err) {
-    console.error(err);
-    alert("Failed to connect to server.");
-  }
+// -------------------------
+// SIMPLE HTML ESCAPE
+// -------------------------
+function escapeHtml(str) {
+  return str.replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
 }
 
+// -------------------------
+// INITIALIZE
+// -------------------------
+document.addEventListener("DOMContentLoaded", () => {
+  setupTeacherManagement();
+  loadTeachers();
+});
 /* -------------------------
    TRANSFER SECTION
    ------------------------- */
