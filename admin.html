@@ -1,0 +1,1180 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script defer src="adminScript.js"></script>
+  
+  <style>
+  :root {
+    --primary: #4f46e5;
+    --primary-light: #eef2ff;
+    --primary-hover: #4338ca;
+    --bg-body: #f1f5f9;
+    --navy: #0f172a;
+    --text-main: #334155;
+    --text-muted: #64748b;
+    --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  }
+
+  * {
+    box-sizing: border-box;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--bg-body);
+    color: var(--text-main);
+    line-height: 1.5;
+  }
+
+  h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 1.5rem;
+  }
+
+  h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--navy);
+    border-bottom: 2px solid var(--primary-light);
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+  }
+
+  /* --- NAVBAR --- */
+  .navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background: #ffffff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 5%;
+    height: 70px;
+    z-index: 1000;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  }
+
+  .logo {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* --- NAVIGATION LINKS --- */
+  .nav-links {
+    position: fixed;
+    top: 70px;
+    right: -280px;
+    width: 260px;
+    height: calc(100% - 70px);
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 15px;
+    gap: 8px;
+    box-shadow: -4px 0 15px rgba(0,0,0,0.05);
+    transition: cubic-bezier(0.4, 0, 0.2, 1) 0.4s;
+    border-left: 1px solid #e2e8f0;
+  }
+
+  .nav-links.active { right: 0; }
+
+  .nav-links button {
+    background: transparent;
+    border: none;
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 0.9rem;
+    color: var(--text-main);
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  .nav-links button:hover {
+    background: var(--primary-light);
+    color: var(--primary);
+  }
+
+  /* --- SECTIONS & CARDS --- */
+  .section {
+    padding: 100px 5% 50px;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: none;
+    animation: fadeIn 0.4s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section.active { display: block; }
+
+  .form-card {
+    background: #ffffff;
+    padding: 32px;
+    border-radius: 16px;
+    box-shadow: var(--card-shadow);
+    border: 1px solid #e2e8f0;
+  }
+
+  /* --- FORMS --- */
+  .row {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 20px;
+  }
+
+  .row label {
+    flex: 1;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    color: var(--navy);
+    transition: all 0.2s;
+    background-color: #fcfcfd;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+    background-color: #fff;
+  }
+
+  /* --- BUTTONS --- */
+  button.save-btn, button.action-btn, #resultForm button[type="submit"] {
+    background: var(--primary);
+    color: #fff;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  button.save-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px -1px rgba(79, 70, 229, 0.3);
+  }
+
+  button.delete-btn {
+    background: #ef4444 !important;
+    box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2);
+  }
+
+  /* --- IMAGE UPLOAD --- */
+  .image-upload-container {
+    width: 120px;
+    height: 120px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    transition: all 0.3s;
+    background: #fff;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .image-upload-container:hover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+  }
+
+  /* --- HAMBURGER --- */
+  .hamburger {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    background: var(--primary-light);
+    border-radius: 10px;
+  }
+
+  .hamburger div {
+    width: 22px;
+    height: 2px;
+    background: var(--primary);
+    transition: 0.3s;
+  }
+
+  /* --- RESPONSIVE --- */
+  @media (max-width: 768px) {
+    .row { flex-direction: column; gap: 15px; }
+    .navbar { padding: 0 20px; }
+    .form-card { padding: 20px; }
+  }
+
+  /* Modal Styling */
+  #editStudentModal > div, #editResultModal > div {
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  }
+  
+  /* --- DYNAMIC CARD DESIGN --- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.data-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.data-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1);
+  border-color: var(--primary);
+}
+
+.data-card-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 12px;
+}
+
+.card-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background: var(--primary-light);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.2rem;
+  object-fit: cover;
+}
+
+.card-info h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.card-info p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.card-body {
+  font-size: 0.85rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.card-label {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.card-value {
+  color: var(--navy);
+  font-weight: 600;
+  text-align: right;
+}
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.card-actions button {
+  flex: 1;
+  padding: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-edit {
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1px solid transparent;
+}
+
+.btn-edit:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-delete {
+  background: #fef2f2;
+  color: #ef4444;
+  border: 1px solid transparent;
+}
+
+.btn-delete:hover {
+  background: #ef4444;
+  color: white;
+}
+
+/* PDF-like Result Preview */
+.result-preview-container {
+  background: white;
+  padding: 40px;
+  border: 1px solid #e2e8f0;
+  max-width: 800px;
+  margin: 0 auto;
+  box-shadow: 0 0 20px rgba(0,0,0,0.05);
+  font-family: 'serif'; /* Makes it look more official */
+}
+
+.report-header {
+  text-align: center;
+  border-bottom: 2px solid var(--navy);
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+}
+
+.report-header h2 { font-size: 24px; color: var(--navy); text-transform: uppercase; }
+
+.student-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.result-table th {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  padding: 10px;
+  text-align: left;
+}
+
+.result-table td {
+  border: 1px solid #cbd5e1;
+  padding: 10px;
+}
+
+.download-btn {
+  background: #059669 !important; /* Green for download */
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media print {
+  .no-print { display: none !important; }
+}
+
+.report-card-wrap {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  max-width: 800px;
+  margin: auto;
+}
+</style>
+</head>
+
+<body>
+  
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="logo">School Portal</div>
+    <div class="hamburger" id="hamburger"><div></div><div></div><div></div></div>
+    <div class="nav-links" id="navLinks">
+      <button onclick="showSection('register')">Register Student</button>
+      <button onclick="showSection('manage')">Manage Students</button>
+      <button onclick="showSection('transfer')">Transfer Students</button>
+      <button onclick="showSection('addSubjects')">Subjects</button>
+      <button onclick="showSection('results')">Results</button>
+      <button onclick="showSection
+      ('manageResults')">Manage Results</button>
+      <button onclick="showSection('addTeacher')">Add Teacher</button>
+      <button onclick="showSection('manageTeacher')">Manage Teachers</button>
+    </div>
+  </nav>
+
+<!-- REGISTER STUDENT -->
+<section id="register" class="section active">
+  
+  <div class="flex flex-col items-center gap-2">
+        <div class="image-upload-container" onclick="document.getElementById('studentPhoto').click()">
+          <div class="text-center text-[#64748b] text-[10px] font-bold" id="placeholder-text">
+            <i data-lucide="camera" class="w-8 h-8 mx-auto mb-1 opacity-50"></i>
+            PHOTO
+          </div>
+          <img id="photo-preview" src="" alt="Preview" class="hidden">
+        </div>
+        <input type="file" id="studentPhoto" accept="image/*" class="hidden" onchange="previewImage(this)">
+      </div>
+    </div>
+  
+  <h1>Register Student</h1>
+  <div class="form-card">
+    <form id="registrationForm">
+
+      <!-- Row 1 -->
+      <div class="row">
+        <label>Full Name 
+          <input type="text" name="fullName" required>
+        </label>
+        <label>Student ID 
+          <input type="text" name="studentId" required>
+        </label>
+      </div>
+
+      <!-- Row 2 -->
+      <div class="row">
+        <label>Date of Birth 
+          <input type="date" name="dateOfBirth" required>
+        </label>
+        <label>Sex
+          <select name="sex" required>
+            <option value="">--Select--</option>
+            <option>Male</option>
+            <option>Female</option>
+          </select>
+        </label>
+      </div>
+
+      <!-- Row 3 -->
+      <div class="row">
+        <label>State of Origin 
+          <input type="text" name="stateOfOrigin">
+        </label>
+        <label>Nationality 
+          <input type="text" name="nationality">
+        </label>
+      </div>
+
+      <!-- Row 9 -->
+      <div class="row">
+        <label>LGA 
+          <input type="text" name="lga">
+        </label>
+        <label>Student Address
+          <input type="text" name="studentAddress">
+        </label>
+      </div>
+
+
+      <!-- Row 4 -->
+      <div class="row">
+        <label>Class Admitted Into
+          <select name="admissionClass" required>
+            <option value="">--Select Class--</option>
+            <option>Pre-KG</option>
+            <option>KG 1</option>
+            <option>KG 2</option>
+            <option>Primary 1</option>
+            <option>Primary 2</option>
+            <option>Primary 3</option>
+            <option>Primary 4</option>
+            <option>Primary 5</option>
+          </select>
+        </label>
+        <label>Current Class
+          <select name="studentClass" required>
+            <option value="">--Select Class--</option>
+            <option>Pre-KG</option>
+            <option>KG 1</option>
+            <option>KG 2</option>
+            <option>Primary 1</option>
+            <option>Primary 2</option>
+            <option>Primary 3</option>
+            <option>Primary 4</option>
+            <option>Primary 5</option>
+          </select>
+        </label>
+      </div>
+
+      <!-- Row 5 -->
+      <div class="row">
+        <label>Parent's Name 
+          <input type="text" name="parentName">
+        </label>
+        <label>Parent Phone 
+          <input type="tel" name="parentPhone">
+        </label>
+      </div>
+
+      <!-- Row 6 -->
+      <div class="row">
+        <label>Parent Email 
+          <input type="email" name="parentEmail">
+        </label>
+        <label>Parent Address 
+          <input type="text" name="parentAddress">
+        </label>
+      </div>
+
+      <!-- Row 7 -->
+      <div class="row">
+        <label>Guardian Name 
+          <input type="text" name="guardianName">
+        </label>
+        <label>Guardian Phone 
+          <input type="tel" name="guardianPhone">
+        </label>
+      </div>
+
+      <!-- Row 8 -->
+      <div class="row">
+        <label>Guardian Email 
+          <input type="email" name="guardianEmail">
+        </label>
+        <label>Guardian Address 
+          <input type="text" name="guardianAddress">
+        </label>
+      </div>
+
+      <!-- MINI SIBLINGS SECTION -->
+      <h3 style="margin-top:20px;">Any Siblings?</h3>
+      <div class="row">
+        <label>Sibling Name
+          <input type="text" name="siblingName">
+        </label>
+        <label>Sibling Class
+          <select name="siblingClass">
+            <option value="">--Select Class--</option>
+            <option>Pre-KG</option>
+            <option>KG 1</option>
+            <option>KG 2</option>
+            <option>Primary 1</option>
+            <option>Primary 2</option>
+            <option>Primary 3</option>
+            <option>Primary 4</option>
+            <option>Primary 5</option>
+          </select>
+        </label>
+        <label>Sibling Sex
+          <select name="siblingGender">
+            <option value="">--Select--</option>
+            <option>Male</option>
+            <option>Female</option>
+          </select>
+        </label>
+      </div>
+
+      <button class="save-btn" type="submit">Register Student</button>
+    </form>
+  </div>
+</section>
+
+<!-- MANAGE STUDENTS -->
+<section id="manage" class="section">
+  <h1>Manage Students</h1>
+  <div class="form-card">
+    <div class="row">
+      <label>Filter by Class
+        <select id="studentClassFilter">
+          <option value="all">All</option>
+          <option>Pre-KG</option>
+          <option>KG 1</option>
+          <option>KG 2</option>
+          <option>Primary 1</option>
+          <option>Primary 2</option>
+          <option>Primary 3</option>
+          <option>Primary 4</option>
+          <option>Primary 5</option>
+        </select>
+      </label>
+    </div>
+
+    <!-- Container to display student cards -->
+    <div id="studentsContainer" class="grid gap-4 mt-4"></div>
+  </div>
+</section>
+
+  <!-- ADD TEACHER -->
+  <section id="addTeacher" class="section">
+    <h1>Add Teacher</h1>
+    <div class="form-card">
+      <form id="teacherForm">
+        <div class="row">
+          <label>Teacher ID <input type="text" name="teacherId" required></label>
+          <label>Full Name <input type="text" name="fullName" required></label>
+          <label>Phone <input type="tel" name="phone" required></label>
+        </div>
+        <div class="row">
+          <label>Email <input type="email" name="email"></label>
+          <label>Qualification <input type="text" name="qualification"></label>
+        </div>
+        <div class="row">
+          <label>Subject Specialization <input type="text" name="subjectSpecialization" required></label>
+          <label>Class Teacher <input type="text" name="classTeacher"></label>
+        </div>
+        <div class="row">
+          <label>Years of Experience <input type="number" name="yearsOfExperience"></label>
+          <label>Joining Date <input type="date" name="joiningDate"></label>
+        </div>
+        <button class="save-btn" type="submit">Add Teacher</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- MANAGE TEACHERS -->
+<section id="manageTeacher" class="section">
+  <h1>Manage Teachers</h1>
+  <div id="teachersContainer" class="grid gap-4 mt-4">
+    <!-- Teacher cards will be dynamically generated here -->
+  </div>
+</section>
+
+
+    <!-- ADD RESULTS -->
+    <section id="results" class="section">
+  <h1>Add Result</h1>
+  <div class="form-card">
+    <form id="resultForm">
+      <!-- Step 1: Select Class -->
+      <label>Class:
+        <select id="resultClass">
+          <option value="">Select class</option>
+          <option>Pre-KG</option>
+          <option>KG 1</option>
+          <option>KG 2</option>
+          <option>Primary 1</option>
+          <option>Primary 2</option>
+          <option>Primary 3</option>
+          <option>Primary 4</option>
+          <option>Primary 5</option>
+        </select>
+      </label>
+
+      <!-- Step 2: Select Student -->
+      <label>Student:
+        <select id="resultStudent">
+          <option value="">Select student</option>
+        </select>
+      </label>
+
+      <!-- Step 3: Subjects container -->
+      <div id="resultSubjects"></div>
+
+      <!-- Step 4: Submit results -->
+      <button type="submit">Save Result</button>
+    </form>
+  </div>
+</section>
+
+
+<section id="manageResults" class="section">
+  <h1>Manage Results</h1>
+
+  <label>Select Class
+    <select id="manageResultClass">
+      <option value="">--Select Class--</option>
+      <option>Pre-KG</option>
+      <option>KG 1</option>
+      <option>KG 2</option>
+      <option>Primary 1</option>
+      <option>Primary 2</option>
+      <option>Primary 3</option>
+      <option>Primary 4</option>
+      <option>Primary 5</option>
+    </select>
+  </label>
+
+  <div id="manageStudentContainer" class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+  <div id="editResultModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 p-4">
+    <div class="bg-white p-6 rounded-3xl w-full max-w-2xl relative max-h-[90vh] overflow-y-auto shadow-2xl">
+      <form id="editResultForm">
+        <div id="editResultSubjects"></div>
+        </form>
+    </div>
+  </div>
+</section>
+
+<!-- TRANSFER STUDENTS -->
+<section id="transfer" class="section">
+  <h1>Transfer Students</h1>
+  <div class="form-card">
+    <form id="transferForm">
+
+      <div class="row">
+        <label>Select Class
+          <select id="transferClass" required>
+            <option value="">--Select Class--</option>
+            <option>Pre-KG</option>
+            <option>KG 1</option>
+            <option>KG 2</option>
+            <option>Primary 1</option>
+            <option>Primary 2</option>
+            <option>Primary 3</option>
+            <option>Primary 4</option>
+            <option>Primary 5</option>
+          </select>
+        </label>
+
+        <label>Select Student
+          <select id="transferStudent" required>
+            <option value="">--Select Student--</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="row">
+        <label>New Class
+          <select id="newClass" required>
+            <option value="">--Select New Class--</option>
+            <option>Pre-KG</option>
+            <option>KG 1</option>
+            <option>KG 2</option>
+            <option>Primary 1</option>
+            <option>Primary 2</option>
+            <option>Primary 3</option>
+            <option>Primary 4</option>
+            <option>Primary 5</option>
+          </select>
+        </label>
+      </div>
+
+      <button class="save-btn" type="submit">Transfer</button>
+    </form>
+  </div>
+</section>
+
+<!-- EDIT STUDENT MODAL -->
+<div id="editStudentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+  <div class="bg-white p-6 rounded-lg w-full max-w-2xl relative max-h-[90vh] overflow-y-auto">
+    <form id="editStudentForm">
+      <!-- Row 1 -->
+      <div class="row mb-2">
+        <label>Student ID <input type="text" name="studentId" readonly class="w-full border p-2 rounded"></label>
+        <label>Full Name <input type="text" name="fullName" class="w-full border p-2 rounded"></label>
+      </div>
+
+      <!-- Row 2 -->
+      <div class="row mb-2">
+        <label>Date of Birth <input type="date" name="dateOfBirth" class="w-full border p-2 rounded"></label>
+        <label>Sex
+          <select name="sex" class="w-full border p-2 rounded">
+            <option value="">--Select--</option>
+            <option>Male</option>
+            <option>Female</option>
+          </select>
+        </label>
+      </div>
+
+      <!-- Row 3 -->
+      <div class="row mb-2">
+        <label>Nationality <input type="text" name="nationality" class="w-full border p-2 rounded"></label>
+        <label>State of Origin <input type="text" name="stateOfOrigin" class="w-full border p-2 rounded"></label>
+      </div>
+
+      <!-- Row 4 -->
+      <div class="row mb-2">
+        <label>LGA <input type="text" name="lga" class="w-full border p-2 rounded"></label>
+        <label>Student Address <input type="text" name="studentAddress" class="w-full border p-2 rounded"></label>
+      </div>
+
+      <!-- Row 5 -->
+      <div class="row mb-2">
+        <label>Admission Class
+          <select name="admissionClass" class="w-full border p-2 rounded">
+            <option value="">--Select Class--</option>
+            <option>Pre-KG</option>
+            <option>KG 1</option>
+            <option>KG 2</option>
+            <option>Primary 1</option>
+            <option>Primary 2</option>
+            <option>Primary 3</option>
+            <option>Primary 4</option>
+            <option>Primary 5</option>
+          </select>
+        </label>
+        <label>Current Class
+          <select name="studentClass" class="w-full border p-2 rounded">
+            <option value="">--Select Class--</option>
+            <option>Pre-KG</option>
+            <option>KG 1</option>
+            <option>KG 2</option>
+            <option>Primary 1</option>
+            <option>Primary 2</option>
+            <option>Primary 3</option>
+            <option>Primary 4</option>
+            <option>Primary 5</option>
+          </select>
+        </label>
+      </div>
+
+      <!-- Row 6 -->
+      <div class="row mb-2">
+        <label>Parent Name <input type="text" name="parentName" class="w-full border p-2 rounded"></label>
+        <label>Parent Phone <input type="tel" name="parentPhone" class="w-full border p-2 rounded"></label>
+      </div>
+
+      <!-- Row 7 -->
+      <div class="row mb-2">
+        <label>Parent Email <input type="email" name="parentEmail" class="w-full border p-2 rounded"></label>
+        <label>Parent Address <input type="text" name="parentAddress" class="w-full border p-2 rounded"></label>
+      </div>
+
+      <!-- Row 8 -->
+      <div class="row mb-2">
+        <label>Guardian Name <input type="text" name="guardianName" class="w-full border p-2 rounded"></label>
+        <label>Guardian Phone <input type="tel" name="guardianPhone" class="w-full border p-2 rounded"></label>
+      </div>
+
+      <!-- Row 9 -->
+      <div class="row mb-2">
+        <label>Guardian Email <input type="email" name="guardianEmail" class="w-full border p-2 rounded"></label>
+        <label>Guardian Address <input type="text" name="guardianAddress" class="w-full border p-2 rounded"></label>
+      </div>
+
+      <!-- Row 10: Siblings -->
+      <div class="row mb-2">
+        <label>Sibling Name <input type="text" name="siblingName" class="w-full border p-2 rounded"></label>
+        <label>Sibling Class
+          <select name="siblingClass" class="w-full border p-2 rounded">
+            <option value="">--Select Class--</option>
+            <option>Pre-KG</option>
+            <option>KG 1</option>
+            <option>KG 2</option>
+            <option>Primary 1</option>
+            <option>Primary 2</option>
+            <option>Primary 3</option>
+            <option>Primary 4</option>
+            <option>Primary 5</option>
+          </select>
+        </label>
+        <label>Sibling Gender
+          <select name="siblingGender" class="w-full border p-2 rounded">
+            <option value="">--Select--</option>
+            <option>Male</option>
+            <option>Female</option>
+          </select>
+        </label>
+      </div>
+
+      <!-- Modal Buttons -->
+      <div class="flex justify-end gap-2 mt-4">
+        <button type="button" id="closeStudentModal" class="bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- EDIT TEACHER MODAL -->
+<div id="editTeacherModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+  <div class="bg-white p-6 rounded-lg w-full max-w-2xl relative max-h-[90vh] overflow-y-auto">
+    <h2 class="text-xl font-bold mb-4">Edit Teacher</h2>
+    <form id="editTeacherForm">
+   <input type="hidden" name="editTeacherUuid">
+
+      <div class="mb-2">
+        <label>Teacher ID
+          <input type="text" name="teacherId" class="w-full border p-2 rounded">
+        </label>
+      </div>
+      <div class="mb-2">
+        <label>Full Name
+          <input type="text" name="fullName" class="w-full border p-2 rounded">
+        </label>
+      </div>
+      <div class="mb-2">
+        <label>Phone
+          <input type="tel" name="phone" class="w-full border p-2 rounded">
+        </label>
+      </div>
+      <div class="mb-2">
+        <label>Email
+          <input type="email" name="email" class="w-full border p-2 rounded">
+        </label>
+      </div>
+      <div class="mb-2">
+        <label>Qualification
+          <input type="text" name="qualification" class="w-full border p-2 rounded">
+        </label>
+      </div>
+      <div class="mb-2">
+        <label>Subject Specialization
+          <input type="text" name="subjectSpecialization" class="w-full border p-2 rounded">
+        </label>
+      </div>
+      <div class="mb-2">
+        <label>Class Teacher
+          <input type="text" name="classTeacher" class="w-full border p-2 rounded">
+        </label>
+      </div>
+      <div class="mb-2">
+        <label>Years of Experience
+          <input type="number" name="yearsOfExperience" class="w-full border p-2 rounded">
+        </label>
+      </div>
+      <div class="mb-2">
+        <label>Joining Date
+          <input type="date" name="joiningDate" class="w-full border p-2 rounded">
+        </label>
+      </div>
+      <div class="flex justify-end gap-2 mt-4">
+        <button type="button" id="closeTeacherModal" class="bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ADD SUBJECTS -->
+<section id="addSubjects" class="section">
+  <h1>Add Subjects</h1>
+  <div class="form-card">
+    <form id="subjectForm">
+      <!-- Select class -->
+      <div class="row">
+        <label>Select Class
+          <select id="subjectClass" required>
+            <option value="">--Select Class--</option>
+            <option>Pre-KG</option>
+            <option>KG 1</option>
+            <option>KG 2</option>
+            <option>Primary 1</option>
+            <option>Primary 2</option>
+            <option>Primary 3</option>
+            <option>Primary 4</option>
+            <option>Primary 5</option>
+          </select>
+        </label>
+      </div>
+      <!-- Subjects inputs (20 max) -->
+      <div id="subjectsContainer" class="mb-4 grid grid-cols-1 gap-4">
+  <!-- Subject 1 -->
+  <div class="subject-row" data-subject-id="1">
+    <div class="font-semibold">Subject 1</div>
+    <input type="number" name="test1_1" class="subject-input" placeholder="Test 1 (20)">
+    <input type="number" name="test2_1" class="subject-input" placeholder="Test 2 (20)">
+    <input type="number" name="exam_1" class="subject-input" placeholder="Exam (60)">
+  </div>
+
+  <!-- Subject 2 -->
+  <div class="subject-row" data-subject-id="2">
+    <div class="font-semibold">Subject 2</div>
+    <input type="number" name="test1_2" class="subject-input" placeholder="Test 1 (20)">
+    <input type="number" name="test2_2" class="subject-input" placeholder="Test 2 (20)">
+    <input type="number" name="exam_2" class="subject-input" placeholder="Exam (60)">
+  </div>
+
+  <!-- Subject 3 -->
+  <div class="subject-row" data-subject-id="3">
+    <div class="font-semibold">Subject 3</div>
+    <input type="number" name="test1_3" class="subject-input" placeholder="Test 1 (20)">
+    <input type="number" name="test2_3" class="subject-input" placeholder="Test 2 (20)">
+    <input type="number" name="exam_3" class="subject-input" placeholder="Exam (60)">
+  </div>
+
+  <!-- Subject 4 -->
+  <div class="subject-row" data-subject-id="4">
+    <div class="font-semibold">Subject 4</div>
+    <input type="number" name="test1_4" class="subject-input" placeholder="Test 1 (20)">
+    <input type="number" name="test2_4" class="subject-input" placeholder="Test 2 (20)">
+    <input type="number" name="exam_4" class="subject-input" placeholder="Exam (60)">
+  </div>
+
+  <!-- Subject 5 -->
+  <div class="subject-row" data-subject-id="5">
+    <div class="font-semibold">Subject 5</div>
+    <input type="number" name="test1_5" class="subject-input" placeholder="Test 1 (20)">
+    <input type="number" name="test2_5" class="subject-input" placeholder="Test 2 (20)">
+    <input type="number" name="exam_5" class="subject-input" placeholder="Exam (60)">
+  </div>
+
+  <!-- Subject 6 -->
+  <div class="subject-row" data-subject-id="6">
+    <div class="font-semibold">Subject 6</div>
+    <input type="number" name="test1_6" class="subject-input" placeholder="Test 1 (20)">
+    <input type="number" name="test2_6" class="subject-input" placeholder="Test 2 (20)">
+    <input type="number" name="exam_6" class="subject-input" placeholder="Exam (60)">
+  </div>
+
+  <!-- Subject 7 -->
+  <div class="subject-row" data-subject-id="7">
+    <div class="font-semibold">Subject 7</div>
+    <input type="number" name="test1_7" class="subject-input" placeholder="Test 1 (20)">
+    <input type="number" name="test2_7" class="subject-input" placeholder="Test 2 (20)">
+    <input type="number" name="exam_7" class="subject-input" placeholder="Exam (60)">
+  </div>
+
+  <!-- Subject 8 -->
+  <div class="subject-row" data-subject-id="8">
+    <div class="font-semibold">Subject 8</div>
+    <input type="number" name="test1_8" class="subject-input" placeholder="Test 1 (20)">
+    <input type="number" name="test2_8" class="subject-input" placeholder="Test 2 (20)">
+    <input type="number" name="exam_8" class="subject-input" placeholder="Exam (60)">
+  </div>
+
+  <!-- Subject 9 -->
+  <div class="subject-row" data-subject-id="9">
+    <div class="font-semibold">Subject 9</div>
+    <input type="number" name="test1_9" class="subject-input" placeholder="Test 1 (20)">
+    <input type="number" name="test2_9" class="subject-input" placeholder="Test 2 (20)">
+    <input type="number" name="exam_9" class="subject-input" placeholder="Exam (60)">
+  </div>
+
+  <!-- Subject 10 -->
+  <div class="subject-row" data-subject-id="10">
+    <div class="font-semibold">Subject 10</div>
+    <input type="number" name="test1_10" class="subject-input" placeholder="Test 1 (20)">
+    <input type="number" name="test2_10" class="subject-input" placeholder="Test 2 (20)">
+    <input type="number" name="exam_10" class="subject-input" placeholder="Exam (60)">
+  </div>
+
+  <!-- Subject 11 -->
+  <div class="subject-row" data-subject-id="11">
+    <div class="font-semibold">Subject 11</div>
+    <input type="number" name="test1_11" class="subject-input" placeholder="Test 1 (20)">
+    <input type="number" name="test2_11" class="subject-input" placeholder="Test 2 (20)">
+    <input type="number" name="exam_11" class="subject-input" placeholder="Exam (60)">
+  </div>
+
+  <!-- Subject 12 -->
+  <div class="subject-row" data-subject-id="12">
+    <div class="font-semibold">Subject 12</div>
+    <input type="number" name="test1_12" class="subject-input" placeholder="Test 1 (20)">
+    <input type="number" name="test2_12" class="subject-input" placeholder="Test 2 (20)">
+    <input type="number" name="exam_12" class="subject-input" placeholder="Exam (60)">
+  </div>
+
+  <!-- Subject 13 -->
+  <div class="subject-row" data-subject-id="13">
+    <div class="font-semibold">Subject 13</div>
+    <input type="number" name="test1_13" class="subject-input" placeholder="Test 1 (20)">
+    <input type="number" name="test2_13" class="subject-input" placeholder="Test 2 (20)">
+    <input type="number" name="exam_13" class="subject-input" placeholder="Exam (60)">
+  </div>
+
+  <!-- Subject 14 -->
+  <div class="subject-row" data-subject-id="14">
+    <div class="font-semibold">Subject 14</div>
+    <input type="number" name="test1_14" class="subject-input" placeholder="Test 1 (20)">
+    <input type="number" name="test2_14" class="subject-input" placeholder="Test 2 (20)">
+    <input type="number" name="exam_14" class="subject-input" placeholder="Exam (60)">
+  </div>
+
+  <!-- Subject 15 -->
+  <div class="subject-row" data-subject-id="15">
+    <div class="font-semibold">Subject 15</div>
+    <input type="number" name="test1_15" class="subject-input" placeholder="Test 1 (20)">
+    <input type="number" name="test2_15" class="subject-input" placeholder="Test 2 (20)">
+    <input type="number" name="exam_15" class="subject-input" placeholder="Exam (60)">
+  </div>
+
+  <!-- Subject 16 -->
+  <div class="subject-row" data-subject-id="16">
+    <div class="font-semibold">Subject 16</div>
+    <input type="number" name="test1_16" class="subject-input" placeholder="Test 1 (20)">
+    <input type="number" name="test2_16" class="subject-input" placeholder="Test 2 (20)">
+    <input type="number" name="exam_16" class="subject-input" placeholder="Exam (60)">
+  </div>
+
+  <!-- Subject 17 -->
+  <div class="subject-row" data-subject-id="17">
+    <div class="font-semibold">Subject 17</div>
+    <input type="number" name="test1_17" class="subject-input" placeholder="Test 1 (20)">
+    <input type="number" name="test2_17" class="subject-input" placeholder="Test 2 (20)">
+    <input type="number" name="exam_17" class="subject-input" placeholder="Exam (60)">
+  </div>
+
+  <!-- Subject 18 -->
+  <div class="subject-row" data-subject-id="18">
+    <div class="font-semibold">Subject 18</div>
+    <input type="number" name="test1_18" class="subject-input" placeholder="Test 1 (20)">
+    <input type="number" name="test2_18" class="subject-input" placeholder="Test 2 (20)">
+    <input type="number" name="exam_18" class="subject-input" placeholder="Exam (60)">
+  </div>
+
+  <!-- Subject 19 -->
+  <div class="subject-row" data-subject-id="19">
+    <div class="font-semibold">Subject 19</div>
+    <input type="number" name="test1_19" class="subject-input" placeholder="Test 1 (20)">
+    <input type="number" name="test2_19" class="subject-input" placeholder="Test 2 (20)">
+    <input type="number" name="exam_19" class="subject-input" placeholder="Exam (60)">
+  </div>
+
+  <!-- Subject 20 -->
+  <div class="subject-row" data-subject-id="20">
+    <div class="font-semibold">Subject 20</div>
+    <input type="number" name="test1_20" class="subject-input" placeholder="Test 1 (20)">
+    <input type="number" name="test2_20" class="subject-input" placeholder="Test 2 (20)">
+    <input type="number" name="exam_20" class="subject-input" placeholder="Exam (60)">
+  </div>
+</div>
+<form>
+
+    <!-- Registered subjects display -->
+    <div class="mt-6" id="registeredSubjects"></div>
+  </div>
+</section>
+
+</body>
+</html>
